@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code Reader</title>
-  <!-- LIFF SDKを読み込む -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
@@ -12,7 +11,7 @@
   <script>
     async function main() {
       // LIFFの初期化
-      await liff.init({ liffId: "ここにあなたのLIFF IDを入力" });
+      await liff.init({ liffId: "2008193250-71EYdm1O" }); // ← 末尾を「O」に修正しました
 
       if (!liff.isLoggedIn()) {
         liff.login();
