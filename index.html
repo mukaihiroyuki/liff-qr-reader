@@ -7,54 +7,73 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    /* カメラ映像を画面いっぱいに表示するためのCSS */
     body {
       margin: 0;
-      overflow: hidden;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
     }
+    /* スタートボタンのスタイル */
+    #scan-button {
+      font-size: 1.5rem;
+      padding: 20px 40px;
+      border-radius: 10px;
+      border: none;
+      background-color: #00b900;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* カメラ映像のスタイル */
     #qr-reader {
-      width: 100vw; /* 画面の横幅いっぱい */
-      height: 100vh; /* 画面の縦幅いっぱい */
+      width: 100vw;
+      height: 100vh;
+      display: none; /* 最初は非表示 */
     }
   </style>
 </head>
 <body>
 
+  <button id="scan-button">QRコードをスキャンする</button>
+
   <div id="qr-reader"></div>
 
   <script>
     async function main() {
-      // LIFFの初期化は引き続き行います
+      // LIFFの初期化
       await liff.init({ liffId: "2008193250-71EYdm1O" });
 
-      // QRコード読み取りが成功したときに呼ばれる関数
-      function onScanSuccess(decodedText, decodedResult) {
-        // スキャナーを停止
-        html5QrcodeScanner.clear();
-        
-        // 読み取った文字でアラートを表示（テスト用）
-        alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
+      const scanButton = document.getElementById('scan-button');
+      const qrReaderDiv = document.getElementById('qr-reader');
 
-        // TODO: ここにデータをAppSheetやn8nに送信する処理などを書く
+      // ボタンがクリックされたらスキャナーを起動
+      scanButton.addEventListener('click', () => {
+        // ボタンを消して、QRリーダーの表示エリアを表示
+        scanButton.style.display = 'none';
+        qrReaderDiv.style.display = 'block';
 
-        // 処理が終わったらLIFFを閉じる
-        liff.closeWindow();
-      }
+        // QRコード読み取りが成功したときに呼ばれる関数
+        function onScanSuccess(decodedText, decodedResult) {
+          html5QrcodeScanner.clear();
+          alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
+          liff.closeWindow();
+        }
 
-      // QRコード読み取りが失敗したときに呼ばれる関数（通常は無視してOK）
-      function onScanFailure(error) {
-        // console.warn(`Code scan error = ${error}`);
-      }
+        // QRコード読み取りが失敗したときに呼ばれる関数
+        function onScanFailure(error) {
+          // console.warn(`Code scan error = ${error}`);
+        }
 
-      // QRコードスキャナーの準備
-      let html5QrcodeScanner = new Html5QrcodeScanner(
-        "qr-reader", // QRリーダーを表示する場所のID
-        { fps: 10, qrbox: { width: 250, height: 250 } }, // 1秒間に10回スキャン、枠のサイズ指定
-        /* verbose= */ false
-      );
-      
-      // スキャナーを起動
-      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+          "qr-reader",
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          false
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+      });
     }
     
     main();
