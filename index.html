@@ -5,28 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code Reader</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    /* カメラ映像を画面いっぱいに表示するためのCSS */
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #qr-reader {
+      width: 100vw; /* 画面の横幅いっぱい */
+      height: 100vh; /* 画面の縦幅いっぱい */
+    }
+  </style>
 </head>
 <body>
 
+  <div id="qr-reader"></div>
+
   <script>
     async function main() {
-      // LIFFの初期化
-      await liff.init({ liffId: "2008193250-71EYdm1O" }); // ← 末尾を「O」に修正しました
+      // LIFFの初期化は引き続き行います
+      await liff.init({ liffId: "2008193250-71EYdm1O" });
 
-      if (!liff.isLoggedIn()) {
-        liff.login();
-      } else {
-        // QRコードリーダーを起動する
-        const result = await liff.scanCodeV2();
-        if (result && result.value) {
-          // 読み取りが成功したらLIFFを閉じる
-          liff.closeWindow();
-        } else {
-          // 読み取りがキャンセルされたらLIFFを閉じる
-          liff.closeWindow();
-        }
+      // QRコード読み取りが成功したときに呼ばれる関数
+      function onScanSuccess(decodedText, decodedResult) {
+        // スキャナーを停止
+        html5QrcodeScanner.clear();
+        
+        // 読み取った文字でアラートを表示（テスト用）
+        alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
+
+        // TODO: ここにデータをAppSheetやn8nに送信する処理などを書く
+
+        // 処理が終わったらLIFFを閉じる
+        liff.closeWindow();
       }
+
+      // QRコード読み取りが失敗したときに呼ばれる関数（通常は無視してOK）
+      function onScanFailure(error) {
+        // console.warn(`Code scan error = ${error}`);
+      }
+
+      // QRコードスキャナーの準備
+      let html5QrcodeScanner = new Html5QrcodeScanner(
+        "qr-reader", // QRリーダーを表示する場所のID
+        { fps: 10, qrbox: { width: 250, height: 250 } }, // 1秒間に10回スキャン、枠のサイズ指定
+        /* verbose= */ false
+      );
+      
+      // スキャナーを起動
+      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
     }
+    
     main();
   </script>
 
