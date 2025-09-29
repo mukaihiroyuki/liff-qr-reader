@@ -7,75 +7,79 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f0f0f0;
+    body { margin: 0; font-family: sans-serif; }
+    .container {
+      display: flex; justify-content: center; align-items: center;
+      width: 100vw; height: 100vh; background-color: #f0f0f0;
     }
-    /* スタートボタンのスタイル */
     #scan-button {
-      font-size: 1.5rem;
-      padding: 20px 40px;
-      border-radius: 10px;
-      border: none;
-      background-color: #00b900;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
+      font-size: 1.5rem; padding: 20px 40px; border-radius: 10px;
+      border: none; background-color: #00b900; color: white;
+      cursor: pointer; font-weight: bold;
     }
-    /* カメラ映像のスタイル */
-    #qr-reader {
-      width: 100vw;
-      height: 100vh;
-      display: none; /* 最初は非表示 */
+    #permission-guide {
+      text-align: center; padding: 20px; display: none;
     }
+    #permission-guide h1 { font-size: 1.8rem; margin-bottom: 15px; }
+    #permission-guide p { font-size: 1.1rem; color: #555; line-height: 1.6; }
+    #qr-reader { width: 100vw; height: 100vh; display: none; }
   </style>
 </head>
 <body>
 
-  <button id="scan-button">QRコードをスキャンする</button>
+  <div id="start-container" class="container">
+    <button id="scan-button">QRコードをスキャンする</button>
+  </div>
+
+  <div id="permission-guide" class="container">
+    <div>
+      <h1>車両・機材のQRを読み取ります</h1>
+      <p>
+        カメラの許可を求められます。<br>
+        表示されるボタンの「<b>許可</b>」を押して<br>
+        スキャンを開始してください。
+      </p>
+    </div>
+  </div>
 
   <div id="qr-reader"></div>
 
   <script>
     async function main() {
-      // LIFFの初期化
       await liff.init({ liffId: "2008193250-71EYdm1O" });
 
-      const scanButton = document.getElementById('scan-button');
+      const startContainer = document.getElementById('start-container');
+      const permissionGuide = document.getElementById('permission-guide');
       const qrReaderDiv = document.getElementById('qr-reader');
 
-      // ボタンがクリックされたらスキャナーを起動
-      scanButton.addEventListener('click', () => {
-        // ボタンを消して、QRリーダーの表示エリアを表示
-        scanButton.style.display = 'none';
-        qrReaderDiv.style.display = 'block';
+      document.getElementById('scan-button').addEventListener('click', () => {
+        startContainer.style.display = 'none';
+        permissionGuide.style.display = 'flex';
 
-        // QRコード読み取りが成功したときに呼ばれる関数
-        function onScanSuccess(decodedText, decodedResult) {
-          html5QrcodeScanner.clear();
-          alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
-          liff.closeWindow();
-        }
+        setTimeout(() => {
+          permissionGuide.style.display = 'none';
+          qrReaderDiv.style.display = 'block';
 
-        // QRコード読み取りが失敗したときに呼ばれる関数
-        function onScanFailure(error) {
-          // console.warn(`Code scan error = ${error}`);
-        }
-
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-          "qr-reader",
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          false
-        );
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+          function onScanSuccess(decodedText, decodedResult) {
+            html5QrcodeScanner.clear();
+            alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
+            liff.closeWindow();
+          }
+          function onScanFailure(error) { /* 省略 */ }
+          
+          let html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader",
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+              supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
+            },
+            false
+          );
+          html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }, 1200); // 案内を読んでもらうため、少しだけ時間を延長
       });
     }
-    
     main();
   </script>
 
