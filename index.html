@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Reader</title>
+  <!-- LIFF SDKを読み込む -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+
+  <script>
+    async function main() {
+      // LIFFの初期化
+      await liff.init({ liffId: "ここにあなたのLIFF IDを入力" });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      } else {
+        // QRコードリーダーを起動する
+        const result = await liff.scanCodeV2();
+        if (result && result.value) {
+          // 読み取りが成功したらLIFFを閉じる
+          liff.closeWindow();
+        } else {
+          // 読み取りがキャンセルされたらLIFFを閉じる
+          liff.closeWindow();
+        }
+      }
+    }
+    main();
+  </script>
+
+</body>
+</html>
