@@ -36,7 +36,7 @@
       font-weight: 600;
       width: 90%;
       max-width: 380px;
-      box-shadow: 0 4px S10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       transition: background-color 0.2s;
     }
     .action-button:hover { background-color: #00a300; }
@@ -104,8 +104,8 @@
 
         html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
           fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
+          qrbox: { width: 250, height: 250 }
+          // ★★★ UIをシンプルにするための一行を削除し、ライブラリの標準機能に戻しました ★★★
         });
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
       });
