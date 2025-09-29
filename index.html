@@ -23,9 +23,10 @@
       transition: background-color 0.2s;
     }
     .action-button:hover { background-color: #00a300; }
-    /* 案内画面のスタイル */
+    
+    /* ★★★ ここからが改善された案内画面のスタイル ★★★ */
     #guide-screen h1 { font-size: 1.5rem; margin-bottom: 20px; color: #111; }
-    #guide-screen p { font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 30px; }
+    #guide-screen p { font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 20px; }
     .preview-box {
       border: 1px solid #ccc; background-color: #fff; padding: 15px;
       border-radius: 8px; margin-bottom: 20px; width: 90%; max-width: 380px;
@@ -33,6 +34,8 @@
     .preview-box .english-text {
       font-family: monospace; font-size: 1rem; color: #007bff; font-weight: bold;
     }
+    /* ★★★ ここまで ★★★ */
+    
     /* QRリーダー画面のスタイル */
     #reader-screen { padding: 0; background-color: #000; }
     #qr-reader { width: 100%; }
@@ -91,7 +94,8 @@
         html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
           fps: 10, 
           qrbox: { width: 250, height: 250 },
-          supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
+          // ↓ UIをシンプルにする場合はこの一行を有効化
+          // supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
         });
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
       });
