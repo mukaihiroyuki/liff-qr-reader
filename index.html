@@ -2,86 +2,126 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>QR Code Reader</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body { margin: 0; font-family: sans-serif; }
+    /* 基本設定 */
+    html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+    /* 各画面のコンテナ */
     .container {
-      display: flex; justify-content: center; align-items: center;
-      width: 100vw; height: 100vh; background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background-color: #f0f0f0;
+      box-sizing: border-box; /* paddingを含めたサイズ計算に */
     }
-    #scan-button {
-      font-size: 1.5rem; padding: 20px 40px; border-radius: 10px;
-      border: none; background-color: #00b900; color: white;
-      cursor: pointer; font-weight: bold;
+    /* 最初と案内画面は非表示に */
+    #start-container, #permission-guide-container { display: none; }
+
+    /* ボタンの共通スタイル */
+    .action-button {
+      font-size: 1.2rem;
+      padding: 15px 30px;
+      border-radius: 10px;
+      border: none;
+      background-color: #00b900;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      width: 80%;
+      max-width: 300px;
     }
-    #permission-guide {
-      text-align: center; padding: 20px; display: none;
+
+    /* 案内画面のテキストスタイル */
+    #permission-guide-container {
+      text-align: center;
+      padding: 20px;
     }
-    #permission-guide h1 { font-size: 1.8rem; margin-bottom: 15px; }
-    #permission-guide p { font-size: 1.1rem; color: #555; line-height: 1.6; }
-    #qr-reader { width: 100vw; height: 100vh; display: none; }
+    #permission-guide-container h1 { font-size: 1.6rem; margin-bottom: 20px; }
+    #permission-guide-container p { font-size: 1rem; color: #333; line-height: 1.7; margin-bottom: 30px; }
+    
+    /* QRリーダーのエリア */
+    #qr-reader { width: 100%; height: 100%; display: none; }
   </style>
 </head>
 <body>
 
   <div id="start-container" class="container">
-    <button id="scan-button">QRコードをスキャンする</button>
+    <button id="start-scan-button" class="action-button">QRコードをスキャンする</button>
   </div>
 
-  <div id="permission-guide" class="container">
-    <div>
-      <h1>車両・機材のQRを読み取ります</h1>
-      <p>
-        カメラの許可を求められます。<br>
-        表示されるボタンの「<b>許可</b>」を押して<br>
-        スキャンを開始してください。
-      </p>
-    </div>
+  <div id="permission-guide-container" class="container">
+    <h1>カメラの許可が必要です</h1>
+    <p>
+      作業のためにカメラを使用します。<br>
+      次の画面で「<b>許可</b>」を押してください。
+    </p>
+    <button id="request-permission-button" class="action-button">カメラを起動する</button>
   </div>
-
+  
   <div id="qr-reader"></div>
 
   <script>
     async function main() {
+      // LIFFの初期化
       await liff.init({ liffId: "2008193250-71EYdm1O" });
 
+      // 各画面の要素を取得
       const startContainer = document.getElementById('start-container');
-      const permissionGuide = document.getElementById('permission-guide');
+      const permissionGuideContainer = document.getElementById('permission-guide-container');
       const qrReaderDiv = document.getElementById('qr-reader');
 
-      document.getElementById('scan-button').addEventListener('click', () => {
+      // LIFFの準備ができたら、最初のスタート画面を表示
+      startContainer.style.display = 'flex';
+
+      // 「QRコードをスキャンする」ボタンが押されたら
+      document.getElementById('start-scan-button').addEventListener('click', () => {
         startContainer.style.display = 'none';
-        permissionGuide.style.display = 'flex';
-
-        setTimeout(() => {
-          permissionGuide.style.display = 'none';
-          qrReaderDiv.style.display = 'block';
-
-          function onScanSuccess(decodedText, decodedResult) {
-            html5QrcodeScanner.clear();
-            alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
-            liff.closeWindow();
-          }
-          function onScanFailure(error) { /* 省略 */ }
-          
-          let html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader",
-            {
-              fps: 10,
-              qrbox: { width: 250, height: 250 },
-              supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
-            },
-            false
-          );
-          html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-        }, 1200); // 案内を読んでもらうため、少しだけ時間を延長
+        permissionGuideContainer.style.display = 'flex';
       });
+
+      // 「カメラを起動する」ボタンが押されたら
+      document.getElementById('request-permission-button').addEventListener('click', () => {
+        permissionGuideContainer.style.display = 'none';
+        qrReaderDiv.style.display = 'block';
+
+        // QRスキャナーを準備して起動
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+          "qr-reader", 
+          { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
+          },
+          false
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+      });
+
+      // スキャン成功時の処理
+      function onScanSuccess(decodedText, decodedResult) {
+        // html5QrcodeScannerが定義されている場合のみclear()を呼ぶ
+        if (window.html5QrcodeScanner) {
+            window.html5QrcodeScanner.clear().catch(error => {
+                console.error("スキャナーの停止に失敗しました。", error);
+            });
+        }
+        alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
+        liff.closeWindow();
+      }
+
+      // スキャン失敗時の処理（何もしない）
+      function onScanFailure(error) {
+        // この関数はスキャンが成功するまで呼ばれ続けるので、中身は空でOK
+      }
     }
+
     main();
   </script>
-
 </body>
 </html>
