@@ -10,47 +10,35 @@
     /* 基本設定 */
     html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     .screen {
-      display: none; /* 全ての画面を一旦隠す */
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 100%;
-      background-color: #f4f6f8;
-      box-sizing: border-box;
-      text-align: center;
-      padding: 20px;
+      display: none; flex-direction: column; justify-content: center; align-items: center;
+      width: 100%; height: 100%; background-color: #f4f6f8;
+      box-sizing: border-box; text-align: center; padding: 20px;
     }
-    .screen.active {
-      display: flex; /* activeクラスがついた画面だけ表示 */
-    }
+    .screen.active { display: flex; }
 
     /* ボタンの共通スタイル */
     .action-button {
-      font-size: 1.2rem;
-      padding: 16px 32px;
-      border-radius: 12px;
-      border: none;
-      background-color: #00b900;
-      color: white;
-      cursor: pointer;
-      font-weight: 600;
-      width: 90%;
-      max-width: 380px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      font-size: 1.2rem; padding: 16px 32px; border-radius: 12px; border: none;
+      background-color: #00b900; color: white; cursor: pointer; font-weight: 600;
+      width: 90%; max-width: 380px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       transition: background-color 0.2s;
     }
-    .action-button:hover {
-      background-color: #00a300;
-    }
+    .action-button:hover { background-color: #00a300; }
 
-    /* 案内画面のスタイル */
-    #permission-guide-screen h1 { font-size: 1.6rem; margin-bottom: 20px; color: #111; }
-    #permission-guide-screen p { font-size: 1rem; color: #444; line-height: 1.7; margin-bottom: 30px; }
+    /* ★★★ ご要望に合わせて案内画面のスタイルを修正 ★★★ */
+    #permission-guide-screen h1 { font-size: 1.5rem; margin-bottom: 20px; color: #111; }
+    #permission-guide-screen p { font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 20px; }
+    .preview-box {
+      border: 1px solid #ccc; background-color: #fff; padding: 15px;
+      border-radius: 8px; margin-bottom: 20px; width: 90%; max-width: 380px;
+    }
+    .preview-box .english-text {
+      font-family: monospace; font-size: 1rem; color: #007bff; font-weight: bold;
+    }
     
     /* QRリーダー画面のスタイル */
-    #qr-reader-screen { padding: 0; background-color: #333; }
-    #qr-reader { width: 100%; } /* 高さはライブラリが調整 */
+    #qr-reader-screen { padding: 0; background-color: #000; }
+    #qr-reader { width: 100%; }
   </style>
 </head>
 <body>
@@ -60,12 +48,15 @@
   </div>
 
   <div id="permission-guide-screen" class="screen">
-    <h1>カメラの許可が必要です</h1>
+    <h1>カメラを起動します</h1>
+    <div class="preview-box">
+      <p style="margin-top:0; margin-bottom: 10px;">次に、このようなボタンが表示されます。</p>
+      <div class="english-text">Request Camera Permissions</div>
+    </div>
     <p>
-      作業のためにカメラを使用します。<br>
-      次の画面で、カメラの使用を許可してください。
+      これは「カメラの許可を求める」という意味です。<br>
+      この<b>英語のボタン</b>を押して許可してください。
     </p>
-    <button id="start-camera-button" class="action-button">カメラを起動する</button>
   </div>
   
   <div id="qr-reader-screen" class="screen">
@@ -73,56 +64,51 @@
   </div>
 
   <script>
-    // グローバルスコープにスキャナーオブジェクトを保持
     let html5QrcodeScanner;
 
     async function main() {
       try {
         await liff.init({ liffId: "2008193250-71EYdm1O" });
       } catch (error) {
-        console.error('LIFFの初期化に失敗しました', error);
-        alert('LIFFの初期化に失敗しました。LINEで開いているか確認してください。');
+        console.error('LIFF Init Error:', error);
+        alert('LIFFの初期化に失敗しました。');
         return;
       }
 
       const screens = document.querySelectorAll('.screen');
       const startScanButton = document.getElementById('start-scan-button');
-      const startCameraButton = document.getElementById('start-camera-button');
       
       function showScreen(screenId) {
-        screens.forEach(screen => {
-          screen.classList.remove('active');
-        });
+        screens.forEach(screen => screen.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
       }
 
       // 1. 「QRコードをスキャンする」ボタンが押されたら
       startScanButton.addEventListener('click', () => {
+        // 案内画面に切り替える
         showScreen('permission-guide-screen');
-      });
 
-      // 2. 「カメラを起動する」ボタンが押されたら
-      startCameraButton.addEventListener('click', () => {
-        showScreen('qr-reader-screen');
-
-        html5QrcodeScanner = new Html5QrcodeScanner(
-          "qr-reader", 
-          { 
+        // ★★★ この一呼吸が重要 ★★★
+        // 画面が切り替わるのを待ってから、次の処理に進む
+        setTimeout(() => {
+          // QRリーダー画面に切り替えて、スキャナーを起動
+          showScreen('qr-reader-screen');
+          
+          html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
             fps: 10, 
             qrbox: { width: 250, height: 250 },
             supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
-          },
-          false
-        );
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+          });
+          html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }, 2000); // 案内画面を2秒間しっかり表示する
       });
 
       function onScanSuccess(decodedText, decodedResult) {
-        if (html5QrcodeScanner && html5QrcodeScanner.getState() === 2) {
-            html5QrcodeScanner.clear().catch(error => console.error("スキャナーの停止に失敗", error));
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear().catch(error => console.error("Scanner clear failed", error));
         }
         alert(`スキャン成功！\n\n読み取った文字： ${decodedText}`);
-        if(liff.isInClient()) liff.closeWindow();
+        if (liff.isInClient()) liff.closeWindow();
       }
 
       function onScanFailure(error) { /* 失敗時は何もしない */ }
