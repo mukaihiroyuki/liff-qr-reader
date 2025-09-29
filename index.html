@@ -10,39 +10,29 @@
     /* 基本設定 */
     html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     .screen {
-      display: none; /* 全ての画面を一旦隠す */
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 100%;
-      background-color: #f4f6f8;
-      box-sizing: border-box;
-      text-align: center;
-      padding: 20px;
+      display: none; flex-direction: column; justify-content: center; align-items: center;
+      width: 100%; height: 100%; background-color: #f4f6f8;
+      box-sizing: border-box; text-align: center; padding: 20px;
     }
-    .screen.active {
-      display: flex; /* activeクラスがついた画面だけ表示 */
-    }
+    .screen.active { display: flex; }
     /* ボタンの共通スタイル */
     .action-button {
-      font-size: 1.2rem;
-      padding: 16px 32px;
-      border-radius: 12px;
-      border: none;
-      background-color: #00b900;
-      color: white;
-      cursor: pointer;
-      font-weight: 600;
-      width: 90%;
-      max-width: 380px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      font-size: 1.2rem; padding: 16px 32px; border-radius: 12px; border: none;
+      background-color: #00b900; color: white; cursor: pointer; font-weight: 600;
+      width: 90%; max-width: 380px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       transition: background-color 0.2s;
     }
     .action-button:hover { background-color: #00a300; }
     /* 案内画面のスタイル */
-    #guide-screen h1 { font-size: 1.6rem; margin-bottom: 20px; color: #111; }
-    #guide-screen p { font-size: 1rem; color: #444; line-height: 1.7; margin-bottom: 30px; }
+    #guide-screen h1 { font-size: 1.5rem; margin-bottom: 20px; color: #111; }
+    #guide-screen p { font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 30px; }
+    .preview-box {
+      border: 1px solid #ccc; background-color: #fff; padding: 15px;
+      border-radius: 8px; margin-bottom: 20px; width: 90%; max-width: 380px;
+    }
+    .preview-box .english-text {
+      font-family: monospace; font-size: 1rem; color: #007bff; font-weight: bold;
+    }
     /* QRリーダー画面のスタイル */
     #reader-screen { padding: 0; background-color: #000; }
     #qr-reader { width: 100%; }
@@ -55,13 +45,16 @@
   </div>
 
   <div id="guide-screen" class="screen">
-    <h1>カメラの許可が必要です</h1>
+    <h1>カメラを起動します</h1>
+    <div class="preview-box">
+      <p style="margin-top:0; margin-bottom: 10px;">次に、このような英語のボタンが表示されます。</p>
+      <div class="english-text">Request Camera Permissions</div>
+    </div>
     <p>
-      作業のためにカメラを使用します。<br>
-      下のボタンを押してカメラを起動し、<br>
-      表示される指示に従い「許可」してください。
+      これは「カメラの許可を求める」という意味です。<br>
+      下のボタンを押して、次に進んでください。
     </p>
-    <button id="proceed-button" class="action-button">カメラを起動してスキャンに進む</button>
+    <button id="proceed-button" class="action-button">カメラの許可に進む</button>
   </div>
   
   <div id="reader-screen" class="screen">
@@ -72,13 +65,7 @@
     let html5QrcodeScanner;
 
     async function main() {
-      try {
-        await liff.init({ liffId: "2008193250-71EYdm1O" });
-      } catch (error) {
-        console.error('LIFF Init Error:', error);
-        alert('LIFFの初期化に失敗しました。');
-        return;
-      }
+      await liff.init({ liffId: "2008193250-71EYdm1O" });
 
       const screens = {
         start: document.getElementById('start-screen'),
@@ -98,14 +85,13 @@
         showScreen('guide');
       });
 
-      // 2. 「カメラを起動してスキャンに進む」ボタンの処理
+      // 2. 「カメラの許可に進む」ボタンの処理
       document.getElementById('proceed-button').addEventListener('click', () => {
         showScreen('reader');
-
         html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
           fps: 10, 
-          qrbox: { width: 250, height: 250 }
-          // ★★★ UIをシンプルにするための一行を削除し、ライブラリの標準機能に戻しました ★★★
+          qrbox: { width: 250, height: 250 },
+          supportedScanTypes: [Html5Qrcode.SupportedScanTypes.SCAN_TYPE_CAMERA]
         });
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
       });
